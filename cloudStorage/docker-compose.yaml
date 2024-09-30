@@ -1,0 +1,41 @@
+version: '3.9'
+
+services:
+  front:
+    container_name: 'front'
+    build:
+      context: front/.
+    ports:
+      - '8081:8080'
+    depends_on:
+      - cloud_storage
+
+  cloud_storage:
+    container_name: 'cloud_storage'
+    build:
+      context: .
+    ports:
+      - '8080:8080'
+    depends_on:
+      - database
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://database:5432/cloud_storage
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+
+  database:
+    image: 'postgres:16-alpine'
+    container_name: database
+    ports:
+      - '5432:5432'
+    restart: always
+    environment:
+      POSTGRES_DB: 'cloud_storage'
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
